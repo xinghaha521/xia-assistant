@@ -64,16 +64,27 @@ class NodeService : AccessibilityService() {
      */
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
-        if (!NodePusher.isStarted()) return
+        val eventType = event.eventType
+        Log.d(TAG, "onAccessibilityEvent type=$eventType pkg=${event.packageName}")
 
-        when (event.eventType) {
+        if (!NodePusher.isStarted()) {
+            Log.w(TAG, "NodePusher 未启动，跳过")
+            return
+        }
+
+        when (eventType) {
             AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
             AccessibilityEvent.TYPE_VIEW_FOCUSED,
             AccessibilityEvent.TYPE_VIEW_SCROLLED,
             AccessibilityEvent.TYPE_VIEW_CLICKED,
+            AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,
+            AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED,
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
             AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED -> {
                 scheduleDump()
+            }
+            else -> {
+                Log.d(TAG, "忽略事件类型 $eventType")
             }
         }
     }
@@ -99,9 +110,12 @@ class NodeService : AccessibilityService() {
     private suspend fun performDump() {
         val svc = instance ?: return
         val xml = NodeDumper.dumpService(svc)
-        if (!xml.isNullOrEmpty()) {
-            NodePusher.broadcast(xml)
+        if (xml.isNullOrEmpty()) {
+            Log.w(TAG, "dumpXml 返回空")
+            return
         }
+        Log.i(TAG, "dumpXml 成功, size=${xml.length}")
+        NodePusher.broadcast(xml)
     }
 
     /**

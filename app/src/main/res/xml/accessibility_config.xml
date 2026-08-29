@@ -5,14 +5,16 @@
   - accessibilityEventTypes：监听的事件类型
   - canRetrieveWindowContent：必须为 true 才能读取节点树
   - flagRetrieveInteractiveWindows：允许跨窗口读取
+  - flagIncludeNotImportantViews：MIUI 必须，接收非重要视图事件
+  - flagReportViewIds：报告 view ID（节点 resource-id 需要）
   - notificationTimeout：事件节流（毫秒），防止高频触发
 -->
 <accessibility-service
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:accessibilityEventTypes="typeWindowContentChanged|typeViewClicked|typeViewFocused|typeViewScrolled|typeWindowStateChanged|typeNotificationStateChanged"
+    android:accessibilityEventTypes="typeWindowContentChanged|typeViewClicked|typeViewFocused|typeViewScrolled|typeViewTextChanged|typeWindowStateChanged|typeNotificationStateChanged|typeViewLongClicked"
     android:accessibilityFeedbackType="feedbackGeneric"
-    android:accessibilityFlags="flagDefault|flagRetrieveInteractiveWindows|flagReportViewIds"
+    android:accessibilityFlags="flagDefault|flagRetrieveInteractiveWindows|flagIncludeNotImportantViews|flagReportViewIds"
     android:canRetrieveWindowContent="true"
     android:canTakeScreenshot="false"
-    android:notificationTimeout="100"
+    android:notificationTimeout="50"
     android:settingsActivity="com.aifriend.assistant.MainActivity" />

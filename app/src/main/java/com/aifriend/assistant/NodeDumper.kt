@@ -26,7 +26,12 @@ object NodeDumper {
      * 对外入口：dump 整棵树为 XML 字符串
      */
     fun dumpService(service: AccessibilityService): String? {
-        val root = service.rootInActiveWindow ?: return null
+        val root = service.rootInActiveWindow
+        if (root == null) {
+            Log.w(TAG, "rootInActiveWindow 为 null")
+            return null
+        }
+        Log.d(TAG, "rootInActiveWindow: pkg=${root.packageName} class=${root.className} children=${root.childCount}")
         return dumpNode(root)
     }
 
