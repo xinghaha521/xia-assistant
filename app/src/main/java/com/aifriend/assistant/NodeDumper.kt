@@ -72,7 +72,8 @@ object NodeDumper {
      */
     private fun getAttrsString(node: AccessibilityNodeInfo): String {
         val sb = StringBuilder()
-        val bounds = node.boundsInScreen
+        val bounds = android.graphics.Rect()
+        node.getBoundsInScreen(bounds)
         sb.append(" bounds=\"[")
         sb.append(bounds.left).append(',').append(bounds.top).append("][")
         sb.append(bounds.right).append(',').append(bounds.bottom).append("]\"")
