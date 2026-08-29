@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- 标题 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:paddingTop="12dp"
+            android:paddingBottom="20dp" />
+
+        <!-- ========== 权限引导 ========== -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="权限引导"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvAccessibilityStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="① 无障碍服务：检测中..."
+            android:textSize="15sp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp" />
+
+        <Button
+            android:id="@+id/btnOpenAccessibility"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="去开启无障碍服务"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="6dp" />
+
+        <TextView
+            android:id="@+id/tvAutoStartStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="② 自启动权限：请到系统设置手动开启"
+            android:textSize="15sp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp" />
+
+        <Button
+            android:id="@+id/btnOpenAutoStart"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="去开启自启动"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="6dp" />
+
+        <TextView
+            android:id="@+id/tvBatteryStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="③ 电池优化：检测中..."
+            android:textSize="15sp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp" />
+
+        <Button
+            android:id="@+id/btnOpenBatteryOpt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="去申请电池白名单"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- ========== 服务控制 ========== -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="服务控制"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:paddingBottom="12dp">
+
+            <Button
+                android:id="@+id/btnStartService"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="启动前台服务"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnStopService"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="停止前台服务"
+                android:layout_marginStart="4dp" />
+        </LinearLayout>
+
+        <!-- ========== 调试信息 ========== -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="调试信息"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_debug_card"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tvClientCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="当前客户端连接：0"
+                android:textSize="14sp"
+                android:padding="3dp" />
+
+            <TextView
+                android:id="@+id/tvPushCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="总推送次数：0"
+                android:textSize="14sp"
+                android:padding="3dp" />
+
+            <TextView
+                android:id="@+id/tvLastEvent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="最后事件：--"
+                android:textSize="14sp"
+                android:padding="3dp" />
+
+            <TextView
+                android:id="@+id/tvLastSize"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="最后包大小：0 B"
+                android:textSize="14sp"
+                android:padding="3dp" />
+
+            <TextView
+                android:id="@+id/tvUptime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="服务运行：00:00:00"
+                android:textSize="14sp"
+                android:padding="3dp" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnResetStats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="清空调试数据"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="20dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/footer_hint"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp" />
+
+    </LinearLayout>
+
+</ScrollView>

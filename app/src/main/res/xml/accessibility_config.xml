@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  无障碍服务配置
+  关键属性说明：
+  - accessibilityEventTypes：监听的事件类型
+  - canRetrieveWindowContent：必须为 true 才能读取节点树
+  - flagRetrieveInteractiveWindows：允许跨窗口读取
+  - notificationTimeout：事件节流（毫秒），防止高频触发
+-->
+<accessibility-service
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowContentChanged|typeViewClicked|typeViewFocused|typeViewScrolled|typeWindowStateChanged|typeNotificationStateChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault|flagRetrieveInteractiveWindows|flagReportViewIds"
+    android:canRetrieveWindowContent="true"
+    android:canTakeScreenshot="false"
+    android:notificationTimeout="100"
+    android:settingsActivity="com.aifriend.assistant.MainActivity" />

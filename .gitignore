@@ -1,0 +1,41 @@
+# Gradle
+.gradle/
+build/
+local.properties
+.gradle/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Android Studio
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Keystore（不要提交签名密钥）
+*.jks
+*.keystore
+keystore.properties
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+
+# Android 构建产物
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+out/
+release/
+
+# 本地配置
+local.properties
