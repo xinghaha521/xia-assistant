@@ -73,6 +73,7 @@ object NodePusher {
         service = svc
         startServer()
         startPing()
+        startForcedDump()  // 调试：主动 3 秒 dump 一次
     }
 
     /**
@@ -172,6 +173,29 @@ object NodePusher {
     private fun stopPing() {
         pingThread?.interrupt()
         pingThread = null
+    }
+
+    /**
+     * 调试用：主动每 3 秒 dump 一次（绕过事件触发问题）
+     * 验证用：确认 dump + broadcast 链路是否 OK
+     */
+    private fun startForcedDump() {
+        val t = Thread({
+            while (!Thread.currentThread().isInterrupted) {
+                try {
+                    Thread.sleep(3000)
+                } catch (_: InterruptedException) { break }
+                val svc = service ?: continue
+                val xml = NodeDumper.dumpService(svc)
+                if (!xml.isNullOrEmpty()) {
+                    Log.i(TAG, "主动 dump 成功, size=${xml.length}")
+                    broadcast(xml)
+                }
+            }
+        }, "NodePusher-ForcedDump").apply {
+            isDaemon = true
+            start()
+        }
     }
 
     /**
