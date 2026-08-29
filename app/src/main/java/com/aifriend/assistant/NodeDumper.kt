@@ -24,15 +24,48 @@ object NodeDumper {
 
     /**
      * 对外入口：dump 整棵树为 XML 字符串
+     * 优先级：
+     * 1. 反射调用 AccessibilityService.dump() （hidden API，uiautomator 同款）
+     * 2. 走 rootInActiveWindow 序列化
      */
     fun dumpService(service: AccessibilityService): String? {
+        // 方法1：反射调用隐藏 dump()
+        val reflectionXml = tryDumpViaReflection(service)
+        if (!reflectionXml.isNullOrBlank()) {
+            Log.i(TAG, "反射 dump 成功, size=${reflectionXml.length}")
+            return reflectionXml
+        }
+
+        // 方法2：rootInActiveWindow（兜底）
         val root = service.rootInActiveWindow
         if (root == null) {
-            Log.w(TAG, "rootInActiveWindow 为 null")
+            Log.w(TAG, "rootInActiveWindow 为 null，反射也失败")
             return null
         }
         Log.d(TAG, "rootInActiveWindow: pkg=${root.packageName} class=${root.className} children=${root.childCount}")
         return dumpNode(root)
+    }
+
+    /**
+     * 反射调用 AccessibilityService.dump() 隐藏方法
+     * 这是 uiautomator dumpXml() 的实现路径
+     * 该方法在某些 ROM（特别是 MIUI）下能绕过 rootInActiveWindow 的限制
+     */
+    private fun tryDumpViaReflection(service: AccessibilityService): String? {
+        return try {
+            // dump() 是 hidden 方法，通过反射调用
+            val method = service.javaClass.getMethod("dump")
+            val fd = method.invoke(service) as java.io.FileDescriptor
+            // 读取 ParcelFileDescriptor
+            val pfd = android.os.ParcelFileDescriptor.dup(fd)
+            val fis = java.io.FileInputStream(pfd.fileDescriptor)
+            val result = fis.bufferedReader(Charsets.UTF_8).use { it.readText() }
+            pfd.close()
+            if (result.isBlank()) null else result
+        } catch (t: Throwable) {
+            Log.w(TAG, "反射 dump 失败: ${t.message}")
+            null
+        }
     }
 
     /**
