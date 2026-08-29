@@ -3,6 +3,7 @@ package com.aifriend.assistant
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -29,6 +30,10 @@ import java.util.Locale
  */
 class MainActivity : AppCompatActivity() {
 
+    companion object {
+        private const val REQ_STORAGE = 1001
+    }
+
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: DebugViewModel
 
@@ -41,6 +46,25 @@ class MainActivity : AppCompatActivity() {
 
         setupUI()
         observeState()
+        requestStoragePermission()
+    }
+
+    /**
+     * 请求存储权限（写入 /sdcard/xiaoa/ 与 EC 主程序共享节点 XML）
+     */
+    private fun requestStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+        ) {
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissions(
+                    arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    REQ_STORAGE
+                )
+            }
+        }
     }
 
     private fun setupUI() {

@@ -52,18 +52,45 @@ object NodeDumper {
      * 该方法在某些 ROM（特别是 MIUI）下能绕过 rootInActiveWindow 的限制
      */
     private fun tryDumpViaReflection(service: AccessibilityService): String? {
-        return try {
-            // dump() 是 hidden 方法，通过反射调用
-            val method = service.javaClass.getMethod("dump")
-            val fd = method.invoke(service) as java.io.FileDescriptor
-            // 读取 ParcelFileDescriptor
-            val pfd = android.os.ParcelFileDescriptor.dup(fd)
-            val fis = java.io.FileInputStream(pfd.fileDescriptor)
-            val result = fis.bufferedReader(Charsets.UTF_8).use { it.readText() }
-            pfd.close()
-            if (result.isBlank()) null else result
+        // 方案 1：调用 service 的 dump() 方法
+        try {
+            val method = service.javaClass.methods.firstOrNull { it.name == "dump" && it.parameterCount == 0 }
+            if (method != null) {
+                Log.d(TAG, "找到 dump 方法: $method")
+                val fd = method.invoke(service) as java.io.FileDescriptor
+                val pfd = android.os.ParcelFileDescriptor.dup(fd)
+                val fis = java.io.FileInputStream(pfd.fileDescriptor)
+                val result = fis.bufferedReader(Charsets.UTF_8).use { it.readText() }
+                pfd.close()
+                if (result.isNotBlank()) return result
+            } else {
+                Log.w(TAG, "service.dump() 方法不存在")
+            }
         } catch (t: Throwable) {
-            Log.w(TAG, "反射 dump 失败: ${t.message}")
+            Log.w(TAG, "反射 dump() 失败: ${t.message}")
+        }
+
+        // 方案 2：调用 AccessibilityNodeInfo 的 dumpStream 方法
+        val root = service.rootInActiveWindow ?: return null
+        return try {
+            val writeToParcelMethod = AccessibilityNodeInfo::class.java.getMethod(
+                "writeToParcel", android.os.Parcel::class.java, Int::class.java
+            )
+            // 不适用，方向反了
+
+            // 用 Parcel.readXml 替代
+            val parcel = android.os.Parcel.obtain()
+            val flags = 0
+            writeToParcelMethod.invoke(root, parcel, flags)
+
+            val bytes = parcel.marshall()
+            parcel.recycle()
+
+            // 用 uiautomator 的 serializer
+            // 这里退回到 walk 序列化
+            dumpNode(root)
+        } catch (t: Throwable) {
+            Log.w(TAG, "反射 Parcel 方案失败: ${t.message}")
             null
         }
     }

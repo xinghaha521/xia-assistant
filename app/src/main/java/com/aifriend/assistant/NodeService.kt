@@ -115,7 +115,9 @@ class NodeService : AccessibilityService() {
             return
         }
         Log.i(TAG, "dumpXml 成功, size=${xml.length}")
+        // 双通道输出：LocalSocket 推送（备用）+ 共享文件（与 EC 主程序通信）
         NodePusher.broadcast(xml)
+        NodeFileWriter.write(xml)
     }
 
     /**

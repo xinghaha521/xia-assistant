@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  数字助理核心配置（VoiceInteractionService）
+  参照可进入 MIUI 数字助理列表的应用结构：
+  - sessionService：会话服务
+  - recognitionService：语音识别服务
+  - supportsAssist / supportsLaunchVoiceAssistFromKeyguard：启用读屏与锁屏唤起
+-->
+<voice-interaction-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:settingsActivity="com.aifriend.assistant.MainActivity"
+    android:sessionService="com.aifriend.assistant.MyVoiceInteractionSessionService"
+    android:recognitionService="com.aifriend.assistant.MyRecognitionService"
+    android:supportsAssist="true"
+    android:supportsLaunchVoiceAssistFromKeyguard="true" />

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 语音识别服务配置（最小实现，设置入口指向主页面） -->
+<recognition-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:settingsActivity="com.aifriend.assistant.MainActivity" />
