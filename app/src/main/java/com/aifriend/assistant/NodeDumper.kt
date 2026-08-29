@@ -161,8 +161,9 @@ object NodeDumper {
             @Suppress("DEPRECATION")
             resId = node.viewIdResourceName
         }
-        if (!resId.isNullOrEmpty()) {
-            sb.append(" resource-id=\"").append(escapeAttr(resId)).append('"')
+        val finalResId = resId
+        if (!finalResId.isNullOrEmpty()) {
+            sb.append(" resource-id=\"").append(escapeAttr(finalResId)).append('"')
         }
 
         node.packageName?.let {
