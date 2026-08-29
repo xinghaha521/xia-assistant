@@ -7,7 +7,6 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import java.io.IOException
 import java.io.OutputStream
-import java.net.Socket
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
@@ -20,10 +19,11 @@ import java.util.concurrent.CopyOnWriteArrayList
  * - 消息体类型：
  *   1. <dump>...</dump>    节点 XML
  *   2. <ping/>              心跳
- *   3. <error>...</error>   错误
  *
  * 设计要点：
  * - 单独线程 accept 连接
+ * - 用反射创建 LocalServerSocket（android.net.LocalServerSocket 与 LocalSocket）
+ * - LocalSocket 不能转成 java.net.Socket（ClassCastException），必须用原生的 LocalSocket
  * - 客户端列表 CopyOnWriteArrayList 保证并发安全
  * - 死连接自动清理
  */
@@ -36,12 +36,18 @@ object NodePusher {
     @Volatile
     private var service: AccessibilityService? = null
 
+    // 直接持有反射创建的 LocalServerSocket（其实是 AutoCloseable）
     @Volatile
-    private var serverSocket: AutoCloseable? = null  // 实际是 LocalServerSocket，反射创建
+    private var serverSocket: Any? = null
     @Volatile
     private var acceptThread: Thread? = null
     @Volatile
     private var pingThread: Thread? = null
+
+    // 反射缓存（性能优化）
+    private var acceptMethod: java.lang.reflect.Method? = null
+    private var localSocketOutputStreamMethod: java.lang.reflect.Method? = null
+    private var localSocketCloseMethod: java.lang.reflect.Method? = null
 
     private val clients = CopyOnWriteArrayList<ClientConn>()
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -51,10 +57,11 @@ object NodePusher {
 
     /**
      * 客户端连接封装
+     * localSocket 是反射得到的 android.net.LocalSocket 实例
      */
     private class ClientConn(
         val output: OutputStream,
-        val socket: Socket,
+        val localSocket: Any,  // android.net.LocalSocket
         val name: String
     )
 
@@ -83,32 +90,37 @@ object NodePusher {
     fun isStarted(): Boolean = serverSocket != null
 
     /**
-     * 启动 LocalServerSocket（用反射，因为 LocalServerSocket 在 android.net 包，
-     * import 时 IDE 不会报错，但 standalone import 在某些 Gradle 配置下会失败）
+     * 启动 LocalServerSocket（全部用反射，避开 android.net 包 import）
      */
     private fun startServer() {
         if (serverSocket != null) return
+
+        // 反射拿 LocalServerSocket 类
+        val serverCls = Class.forName("android.net.LocalServerSocket")
+        val socketCls = Class.forName("android.net.LocalSocket")
+
+        acceptMethod = serverCls.getMethod("accept")
+        localSocketOutputStreamMethod = socketCls.getMethod("getOutputStream")
+        localSocketCloseMethod = socketCls.getMethod("close")
+
         acceptThread = Thread({
             try {
-                val cls = Class.forName("android.net.LocalServerSocket")
-                val ctor = cls.getConstructor(String::class.java)
-                serverSocket = ctor.newInstance(SOCKET_NAME) as AutoCloseable
+                val ctor = serverCls.getConstructor(String::class.java)
+                serverSocket = ctor.newInstance(SOCKET_NAME)
                 Log.i(TAG, "LocalServerSocket 启动: $SOCKET_NAME")
 
-                // accept() 是阻塞调用，需要反射调用
-                val acceptMethod = cls.getMethod("accept")
-                val getOutputStreamMethod = java.net.Socket::class.java.getMethod("getOutputStream")
-
                 while (!Thread.currentThread().isInterrupted) {
-                    val sock = acceptMethod.invoke(serverSocket) as Socket
-                    val out = getOutputStreamMethod.invoke(sock) as OutputStream
-                    val client = ClientConn(out, sock, "client-${System.currentTimeMillis()}")
+                    val localSock = acceptMethod!!.invoke(serverSocket)  // android.net.LocalSocket 实例
+                    val out = localSocketOutputStreamMethod!!.invoke(localSock) as OutputStream
+                    val client = ClientConn(out, localSock, "client-${System.currentTimeMillis()}")
                     clients.add(client)
                     updateClientCount()
                     Log.i(TAG, "客户端连接: ${client.name}, 总数: ${clients.size}")
                 }
             } catch (t: Throwable) {
-                Log.e(TAG, "accept 异常", t)
+                if (t !is java.io.IOException) {
+                    Log.e(TAG, "accept 异常", t)
+                }
             }
         }, "NodePusher-Accept").apply {
             isDaemon = true
@@ -122,7 +134,9 @@ object NodePusher {
     private fun stopServer() {
         try {
             acceptThread?.interrupt()
-            serverSocket?.close()
+            serverSocket?.let {
+                (it as? AutoCloseable)?.close()
+            }
         } catch (_: Throwable) {}
         serverSocket = null
         acceptThread = null
@@ -130,7 +144,7 @@ object NodePusher {
         // 关闭所有客户端
         clients.forEach { conn ->
             try { conn.output.close() } catch (_: Throwable) {}
-            try { conn.socket.close() } catch (_: Throwable) {}
+            try { localSocketCloseMethod?.invoke(conn.localSocket) } catch (_: Throwable) {}
         }
         clients.clear()
         updateClientCount()
@@ -180,7 +194,6 @@ object NodePusher {
         val header = intToBytes(data.size)
         val payload = header + data
 
-        // 先 copy 一份当前列表
         val snapshot = clients.toList()
         val dead = mutableListOf<ClientConn>()
 
@@ -202,7 +215,7 @@ object NodePusher {
             clients.removeAll(dead.toSet())
             dead.forEach { conn ->
                 try { conn.output.close() } catch (_: Throwable) {}
-                try { conn.socket.close() } catch (_: Throwable) {}
+                try { localSocketCloseMethod?.invoke(conn.localSocket) } catch (_: Throwable) {}
             }
             updateClientCount()
             if (!isPing) Log.i(TAG, "清理 ${dead.size} 个死连接, 剩余: ${clients.size}")
@@ -230,10 +243,7 @@ object NodePusher {
 }
 
 /**
- * 调试事件总线：把 NodePusher 的状态变更传递给 DebugViewModel
- *
- * 设计原因：NodePusher 是单例 object，DebugViewModel 是 Activity 级，
- * 用静态回调避免 LiveData 跨进程同步问题
+ * 调试事件总线
  */
 object DebugBus {
     @Volatile var listener: ((packetSize: Int, clientCount: Int) -> Unit)? = null
