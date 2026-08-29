@@ -36,14 +36,28 @@ object NodeDumper {
             return reflectionXml
         }
 
-        // 方法2：rootInActiveWindow（兜底）
-        val root = service.rootInActiveWindow
-        if (root == null) {
-            Log.w(TAG, "rootInActiveWindow 为 null，反射也失败")
-            return null
+        // 方法2：遍历所有窗口（MIUI 上 rootInActiveWindow 可能返回空壳/不全，getWindows 更可靠）
+        val sb = StringBuilder(8192)
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
+        sb.append("<hierarchy rotation=\"0\">\n")
+        val counter = intArrayOf(0)
+        val windows = service.windows
+        if (windows.isNotEmpty()) {
+            for (window in windows) {
+                val r = window.root ?: continue
+                Log.d(TAG, "窗口: pkg=${r.packageName} class=${r.className} children=${r.childCount}")
+                walk(r, sb, 0, counter)
+            }
+        } else {
+            val root = service.rootInActiveWindow
+            if (root == null) {
+                Log.w(TAG, "无可用窗口，rootInActiveWindow 也为 null")
+                return null
+            }
+            walk(root, sb, 0, counter)
         }
-        Log.d(TAG, "rootInActiveWindow: pkg=${root.packageName} class=${root.className} children=${root.childCount}")
-        return dumpNode(root)
+        sb.append("</hierarchy>")
+        return sb.toString()
     }
 
     /**
