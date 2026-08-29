@@ -2,6 +2,7 @@ package com.aifriend.assistant
 
 import android.content.Intent
 import android.speech.RecognitionService
+import android.speech.SpeechRecognizer
 import android.util.Log
 
 /**
@@ -19,7 +20,7 @@ class MyRecognitionService : RecognitionService() {
 
     override fun onStartListening(intent: Intent?, listener: Callback?) {
         Log.i(TAG, "收到识别请求，本应用不支持语音输入")
-        listener?.error(RecognitionService.ERROR_CLIENT)
+        listener?.error(SpeechRecognizer.ERROR_CLIENT)
     }
 
     override fun onCancel(listener: Callback?) {
