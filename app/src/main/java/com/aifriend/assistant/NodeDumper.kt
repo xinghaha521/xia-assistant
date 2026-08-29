@@ -150,16 +150,19 @@ object NodeDumper {
             sb.append(" content-desc=\"").append(escapeAttr(truncate(it.toString(), MAX_DESC_LEN))).append('"')
         }
 
-        // resource-id（API >= 28 优先用 uniqueId，老版本用 viewIdResourceName）
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            node.uniqueId?.let {
-                sb.append(" resource-id=\"").append(escapeAttr(it)).append('"')
-            }
-        } else {
+        // resource-id
+        // 注意：getUniqueId() 是 API 33+ 新增，Android 11 及以下调用会 NoSuchMethodError，
+        // 因此统一使用 viewIdResourceName（API 18+ 稳定可用）
+        var resId: String? = null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            node.uniqueId?.let { resId = it }
+        }
+        if (resId.isNullOrEmpty()) {
             @Suppress("DEPRECATION")
-            node.viewIdResourceName?.let {
-                sb.append(" resource-id=\"").append(escapeAttr(it)).append('"')
-            }
+            resId = node.viewIdResourceName
+        }
+        if (!resId.isNullOrEmpty()) {
+            sb.append(" resource-id=\"").append(escapeAttr(resId)).append('"')
         }
 
         node.packageName?.let {
