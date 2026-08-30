@@ -69,10 +69,10 @@ class VoiceCommandService : VoiceInteractionService() {
             Log.i(TAG, "onHandleAssist: windowCount=${structure?.windowNodeCount}")
             AssistStructureCache.update(structure)
 
-            // 写文件兑底（EC bindService 失败时直接读文件）
+            // 写文件兑底（EC 端读这个文件触发 trigger/伪选择器）
             val nodes = AssistStructureCache.getSnapshot()
             val version = AssistStructureCache.getVersion()
-            NodeFileWriter.writeSync(nodes, version)
+            NodeFileWriter.writeSync(this, nodes, version)
 
             // 通知 ProxyService 反向回调 EC
             VoiceCommandProxyService.notifySnapshotUpdatedStatic(version)
