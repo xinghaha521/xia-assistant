@@ -5,9 +5,6 @@ import android.os.IBinder
 import android.os.IInterface
 import android.os.Parcel
 
-/**
- * 自定义回调接口（不依赖 aidl 编译）
- */
 interface IXiaCallback : IInterface {
     fun onSnapshotUpdated(version: Int)
 
@@ -44,20 +41,20 @@ interface IXiaCallback : IInterface {
         }
 
         override fun asBinder(): IBinder = this
+    }
+}
 
-        private class Proxy(private val remote: IBinder) : IXiaCallback {
-            override fun onSnapshotUpdated(version: Int) {
-                val data = Parcel()
-                try {
-                    data.writeInterfaceToken(DESCRIPTOR)
-                    data.writeInt(version)
-                    remote.transact(TRANSACTION_onSnapshotUpdated, data, null, IBinder.FLAG_ONEWAY)
-                } finally {
-                    data.recycle()
-                }
-            }
-
-            override fun asBinder(): IBinder = remote
+private class Proxy(private val remote: IBinder) : IXiaCallback {
+    override fun onSnapshotUpdated(version: Int) {
+        val data = Parcel.obtain()
+        try {
+            data.writeInterfaceToken(IXiaCallback.DESCRIPTOR)
+            data.writeInt(version)
+            remote.transact(IXiaCallback.TRANSACTION_onSnapshotUpdated, data, null, IBinder.FLAG_ONEWAY)
+        } finally {
+            data.recycle()
         }
     }
+
+    override fun asBinder(): IBinder = remote
 }
