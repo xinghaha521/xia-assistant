@@ -15,7 +15,7 @@ interface IXiaCallback : IInterface {
         fun asInterface(binder: IBinder?): IXiaCallback? {
             if (binder == null) return null
             val iin = binder.queryLocalInterface(DESCRIPTOR)
-            return if (iin != null && iin is IXiaCallback) iin else Proxy(binder)
+            return if (iin != null && iin is IXiaCallback) iin else IXiaCallbackProxy(binder)
         }
     }
 
@@ -44,7 +44,7 @@ interface IXiaCallback : IInterface {
     }
 }
 
-private class Proxy(private val remote: IBinder) : IXiaCallback {
+private class IXiaCallbackProxy(private val remote: IBinder) : IXiaCallback {
     override fun onSnapshotUpdated(version: Int) {
         val data = Parcel.obtain()
         try {

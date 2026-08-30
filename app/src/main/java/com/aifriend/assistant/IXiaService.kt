@@ -25,7 +25,7 @@ interface IXiaService : IInterface {
         fun asInterface(binder: IBinder?): IXiaService? {
             if (binder == null) return null
             val iin = binder.queryLocalInterface(DESCRIPTOR)
-            return if (iin != null && iin is IXiaService) iin else Proxy(binder)
+            return if (iin != null && iin is IXiaService) iin else IXiaServiceProxy(binder)
         }
     }
 
@@ -87,7 +87,7 @@ interface IXiaService : IInterface {
     }
 }
 
-private class Proxy(private val remote: IBinder) : IXiaService {
+private class IXiaServiceProxy(private val remote: IBinder) : IXiaService {
 
     override fun triggerAssistSession() {
         val data = Parcel.obtain()
