@@ -62,8 +62,8 @@ object AssistStructureCache {
                         packageName = pkg,
                         left = node.left,
                         top = node.top,
-                        right = node.right,
-                        bottom = node.bottom,
+                        right = node.left + node.width,
+                        bottom = node.top + node.height,
                         clickable = node.isClickable,
                         focusable = node.isFocusable,
                         visibleToUser = true

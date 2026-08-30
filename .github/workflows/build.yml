@@ -5,7 +5,7 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   build:
@@ -39,7 +39,7 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Build Debug APK
-        run: gradle assembleDebug --stacktrace --no-daemon
+        run: gradle assembleDebug --stacktrace --no-daemon --rerun-tasks
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
