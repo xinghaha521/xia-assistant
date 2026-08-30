@@ -66,7 +66,18 @@ class VoiceCommandProxyService : Service() {
         super.onCreate()
         instance = this
         Log.i(TAG, "ProxyService 启动")
+        // debug: 自动 trigger 一次（验证链路）
+        mainHandler.postDelayed({
+            try {
+                VoiceCommandService.instance?.triggerNewSession()
+                Log.i(TAG, "debug: 自动 trigger session")
+            } catch (t: Throwable) {
+                Log.w(TAG, "debug trigger 失败: ${t.message}")
+            }
+        }, 1500L)
     }
+
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
 
     override fun onDestroy() {
         instance = null

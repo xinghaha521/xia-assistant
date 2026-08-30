@@ -11,8 +11,8 @@ android {
         applicationId = "com.aifriend.assistant"
         minSdk = 24
         targetSdk = 29
-        versionCode = 4
-        versionName = "0.3.1"
+        versionCode = 5
+        versionName = "0.3.2"
     }
 
     buildTypes {
