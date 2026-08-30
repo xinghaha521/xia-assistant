@@ -60,6 +60,15 @@
             </intent-filter>
         </receiver>
 
+        <!-- 调试用：接收外部 trigger 广播 -->
+        <receiver
+            android:name=".TriggerReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.aifriend.assistant.TRIGGER_ASSIST" />
+            </intent-filter>
+        </receiver>
+
         <!-- ===== 数字助理三件套 ===== -->
 
         <service
