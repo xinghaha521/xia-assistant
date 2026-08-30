@@ -111,8 +111,7 @@ class MainActivity : AppCompatActivity() {
         )
         binding.btnSetDefaultAssistant.visibility = if (isDefault) View.GONE else View.VISIBLE
 
-        // 2. 无障碍服务
-        val accOn = isAccessibilityEnabled()
+        // 2. 无障碍服务（始终 GONE，保留入口备用）
         binding.tvAccessibilityStatus.text = "② 无障碍服务：可选备用通道"
         binding.tvAccessibilityStatus.setTextColor(getColor(android.R.color.holo_orange_dark))
         binding.btnOpenAccessibility.visibility = View.GONE
