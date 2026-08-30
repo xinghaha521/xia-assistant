@@ -117,7 +117,8 @@ class NodeService : AccessibilityService() {
         Log.i(TAG, "dumpXml 成功, size=${xml.length}")
         // 双通道输出：LocalSocket 推送（备用）+ 共享文件（与 EC 主程序通信）
         NodePusher.broadcast(xml)
-        NodeFileWriter.write(xml)
+        // NodeFileWriter.write(xml) // v0.4.1: NodeFileWriter 仅支持 writeSync(nodes, version)，移除旧 API
+        // 无障碍通道下不再写文件，主线节点采集已迁到 VoiceCommandService.onHandleAssist
     }
 
     /**
