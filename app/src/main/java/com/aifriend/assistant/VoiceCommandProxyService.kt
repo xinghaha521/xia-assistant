@@ -7,7 +7,8 @@ import android.os.RemoteCallbackList
 import android.util.Log
 
 /**
- * 对外暴露的 Binder 接口（仿 vis VoiceCommandProxyService）
+ * 对外暴露的 Binder 接口服务
+ * 实现 IXiaService.Stub
  */
 class VoiceCommandProxyService : Service() {
 
@@ -17,9 +18,6 @@ class VoiceCommandProxyService : Service() {
         @Volatile
         private var instance: VoiceCommandProxyService? = null
 
-        /**
-         * 供 VoiceCommandService.onHandleAssist 调用的静态入口
-         */
         fun notifySnapshotUpdatedStatic(version: Int) {
             val ins = instance
             if (ins == null) {
@@ -40,7 +38,7 @@ class VoiceCommandProxyService : Service() {
             if (svc != null) {
                 svc.triggerNewSession()
             } else {
-                Log.w(TAG, "VoiceCommandService 尚未就绪（onReady 未触发）")
+                Log.w(TAG, "VoiceCommandService 尚未就绪")
             }
         }
 
@@ -50,11 +48,14 @@ class VoiceCommandProxyService : Service() {
             return snap
         }
 
-        override fun registerCallback(callback: IXiaCallback) {
-            if (callback != null) callbacks.register(callback)
+        override fun registerCallback(callback: IXiaCallback?) {
+            if (callback != null) {
+                callback.asBinder()?.linkToDeath({ Log.w(TAG, "EC 进程死掉") }, 0)
+                callbacks.register(callback)
+            }
         }
 
-        override fun unregisterCallback(callback: IXiaCallback) {
+        override fun unregisterCallback(callback: IXiaCallback?) {
             if (callback != null) callbacks.unregister(callback)
         }
 
