@@ -1,12 +1,15 @@
 package com.aifriend.assistant
 
-import android.app.assist.AssistContent
-import android.app.assist.AssistStructure
 import android.content.Context
 import android.os.Bundle
 import android.service.voice.VoiceInteractionSession
 import android.util.Log
 
+/**
+ * 仿 vis MyVoiceInteractionSession
+ * - onHandleAssist 转发到 VoiceCommandService.onHandleAssist
+ * - scheduleFinish(1500ms) 仿 vis FINISH_FALLBACK_DELAY_MS
+ */
 class MyVoiceInteractionSession(context: Context) : VoiceInteractionSession(context) {
     companion object {
         private const val TAG = "MySession"
@@ -25,19 +28,14 @@ class MyVoiceInteractionSession(context: Context) : VoiceInteractionSession(cont
 
     override fun onHandleAssist(state: VoiceInteractionSession.AssistState) {
         super.onHandleAssist(state)
-        val structure: AssistStructure? = try { state.assistStructure } catch (t: Throwable) { null }
-        if (structure != null) {
-            try {
-                val xml = AssistNodeDumper.dump(structure)
-                if (!xml.isNullOrEmpty()) {
-                    NodeFileWriter.write(xml)
-                    Log.i(TAG, "AssistStructure 写入成功 size=${xml.length}")
-                }
-            } catch (t: Throwable) {
-                Log.w(TAG, "AssistStructure 处理失败: ${t.message}")
-            }
-        } else {
-            Log.w(TAG, "AssistState 缺少 AssistStructure")
+        try {
+            // 转发给 VoiceCommandService，由它负责：
+            // 1) 填充 AssistStructureCache
+            // 2) 写文件兑底
+            // 3) 通知 ProxyService callback
+            VoiceCommandService.instance?.onHandleAssist(state)
+        } catch (t: Throwable) {
+            Log.e(TAG, "onHandleAssist 失败: ${t.message}", t)
         }
         scheduleFinish(FINISH_DELAY_MS)
     }

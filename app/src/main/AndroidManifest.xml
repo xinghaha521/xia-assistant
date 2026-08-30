@@ -1,19 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 网络权限（用于调试页展示 IP，可选） -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- 网络状态（可选） -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- 前台服务保活 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- 开机自启动 -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- 唤醒锁 -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <!-- 忽略电池优化 -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <!-- EC 主程序读取此目录时申请所有文件访问权限 -->
 
     <application
         android:name=".XiaApp"
@@ -28,7 +21,6 @@
         tools:targetApi="29"
         xmlns:tools="http://schemas.android.com/tools">
 
-        <!-- 主入口（引导 + 调试页） -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -40,7 +32,6 @@
             </intent-filter>
         </activity>
 
-        <!-- 无障碍服务：核心，dump XML 并推送 -->
         <service
             android:name=".NodeService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
@@ -54,13 +45,11 @@
                 android:resource="@xml/accessibility_config" />
         </service>
 
-        <!-- 前台服务：包装 NodePusher，便于系统级保活 -->
         <service
             android:name=".AssistForegroundService"
             android:exported="true"
             android:foregroundServiceType="dataSync" />
 
-        <!-- 开机自启广播 -->
         <receiver
             android:name=".BootReceiver"
             android:exported="true">
@@ -71,9 +60,8 @@
             </intent-filter>
         </receiver>
 
-        <!-- ===== 数字助理三件套：声明后应用可进入 MIUI 数字助理列表 ===== -->
+        <!-- ===== 数字助理三件套 ===== -->
 
-        <!-- 数字助理核心服务 -->
         <service
             android:name=".VoiceCommandService"
             android:permission="android.permission.BIND_VOICE_INTERACTION"
@@ -86,7 +74,6 @@
                 android:resource="@xml/voice_interaction_service" />
         </service>
 
-        <!-- 数字助理会话服务 -->
         <service
             android:name=".MyVoiceInteractionSessionService"
             android:permission="android.permission.BIND_VOICE_INTERACTION"
@@ -96,7 +83,6 @@
             </intent-filter>
         </service>
 
-        <!-- 语音识别服务（满足 recognitionService 引用） -->
         <service
             android:name=".MyRecognitionService"
             android:permission="android.permission.BIND_RECOGNITION_SERVICE"
@@ -109,6 +95,11 @@
                 android:name="android.speech"
                 android:resource="@xml/recognition_service" />
         </service>
+
+        <!-- ===== Binder 接口服务：EC 通过此服务与小a 通信 ===== -->
+        <service
+            android:name=".VoiceCommandProxyService"
+            android:exported="true" />
 
     </application>
 
