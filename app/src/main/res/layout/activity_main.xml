@@ -31,10 +31,27 @@
             android:paddingBottom="8dp" />
 
         <TextView
+            android:id="@+id/tvAssistantStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="① 默认数字助理：检测中..."
+            android:textSize="15sp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp" />
+
+        <Button
+            android:id="@+id/btnSetDefaultAssistant"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="设为默认数字助理"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="6dp" />
+
+        <TextView
             android:id="@+id/tvAccessibilityStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-             android:text="① 无障碍服务：可选备用通道"
+             android:text="② 无障碍服务：可选备用通道"
              android:textSize="15sp"
             android:paddingTop="6dp"
             android:paddingBottom="6dp" />
@@ -51,7 +68,7 @@
             android:id="@+id/tvAutoStartStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="② 自启动权限：请到系统设置手动开启"
+            android:text="③ 自启动权限：请到系统设置手动开启"
             android:textSize="15sp"
             android:paddingTop="6dp"
             android:paddingBottom="6dp" />
@@ -68,7 +85,7 @@
             android:id="@+id/tvBatteryStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="③ 电池优化：检测中..."
+            android:text="④ 电池优化：检测中..."
             android:textSize="15sp"
             android:paddingTop="6dp"
             android:paddingBottom="6dp" />

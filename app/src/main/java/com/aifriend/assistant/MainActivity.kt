@@ -1,6 +1,7 @@
 package com.aifriend.assistant
 
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -22,16 +23,17 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * 主页面：引导开启无障碍 + 调试信息展示
+ * 主页面：引导开启权限 + 调试信息展示
  *
  * 布局说明：
- * - 上半部分：权限引导（无障碍、自启动、电池优化）
+ * - 上半部分：权限引导（数字助理、无障碍、自启动、电池优化）
  * - 下半部分：调试信息（连接数、推送次数、最后事件、包大小、运行时长）
  */
 class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val REQ_STORAGE = 1001
+        private const val ASSISTANT_SERVICE_NAME = "com.aifriend.assistant/.VoiceCommandService"
     }
 
     private lateinit var binding: ActivityMainBinding
@@ -49,6 +51,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
+        binding.btnSetDefaultAssistant.setOnClickListener {
+            openAssistantSettings()
+        }
         binding.btnOpenAccessibility.setOnClickListener {
             openAccessibilitySettings()
         }
@@ -90,36 +95,55 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 刷新三个权限开关的显示
+     * 刷新四个权限开关的显示
      */
     private fun refreshPermissionStates() {
-        // 1. 无障碍服务
+        // 1. 默认数字助理
+        val isDefault = isDefaultVoiceAssistant()
+        binding.tvAssistantStatus.text = if (isDefault) {
+            "① 默认数字助理：【已设为小a】 ✓"
+        } else {
+            "① 默认数字助理：【未设】 ✗"
+        }
+        binding.tvAssistantStatus.setTextColor(
+            if (isDefault) getColor(android.R.color.holo_green_dark)
+            else getColor(android.R.color.holo_red_dark)
+        )
+        binding.btnSetDefaultAssistant.visibility = if (isDefault) View.GONE else View.VISIBLE
+
+        // 2. 无障碍服务
         val accOn = isAccessibilityEnabled()
-        binding.tvAccessibilityStatus.text = "① 无障碍服务：可选备用通道"
+        binding.tvAccessibilityStatus.text = "② 无障碍服务：可选备用通道"
         binding.tvAccessibilityStatus.setTextColor(getColor(android.R.color.holo_orange_dark))
         binding.btnOpenAccessibility.visibility = View.GONE
 
-        // 2. 自启动（无法直接判断，提示用户）
-        binding.tvAutoStartStatus.text = "② 自启动权限：请到系统设置手动开启"
+        // 3. 自启动（无法直接判断，提示用户）
+        binding.tvAutoStartStatus.text = "③ 自启动权限：请到系统设置手动开启"
         binding.tvAutoStartStatus.setTextColor(getColor(android.R.color.holo_orange_dark))
 
-        // 3. 电池优化
+        // 4. 电池优化
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
         val ignoringBattery = pm.isIgnoringBatteryOptimizations(packageName)
-        binding.tvBatteryStatus.text = if (ignoringBattery) "③ 电池优化：【已忽略】 ✓" else "③ 电池优化：【未忽略】 ✗"
+        binding.tvBatteryStatus.text = if (ignoringBattery) "④ 电池优化：【已忽略】 ✓" else "④ 电池优化：【未忽略】 ✗"
         binding.tvBatteryStatus.setTextColor(
-            if (ignoringBattery) getColor(android.R.color.holo_green_dark) else getColor(android.R.color.holo_red_dark)
+            if (ignoringBattery) getColor(android.R.color.holo_green_dark)
+            else getColor(android.R.color.holo_red_dark)
         )
         binding.btnOpenBatteryOpt.visibility = if (ignoringBattery) View.GONE else View.VISIBLE
     }
 
     /**
-     * 检测无障碍服务是否已开启
+     * 检测本应用是否为系统默认数字助理
+     * 注意：MIUI 12.5 偶发反篡改，最稳是返回
+     - 检测后还要看 system_server 是否真的拉起
      */
-    private fun isAccessibilityEnabled(): Boolean {
-        val am = getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-        val enabled = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
-        return enabled.any { it.resolveInfo.serviceInfo.packageName == packageName }
+    private fun isDefaultVoiceAssistant(): Boolean {
+        return try {
+            val current = Settings.Secure.getString(contentResolver, "voice_interaction_service")
+            current != null && current.contains(packageName)
+        } catch (e: Exception) {
+            false
+        }
     }
 
     /**
@@ -134,6 +158,39 @@ class MainActivity : AppCompatActivity() {
                 .setMessage("请手动进入 设置 → 无障碍 → 找到【${getString(R.string.accessibility_service_label)}】并开启")
                 .setPositiveButton("好的", null)
                 .show()
+        }
+    }
+
+    /**
+     * 跳转到默认数字助理设置页
+     *
+     * MIUI 12.5 实测：com.android.settings.Settings$ManageAssistActivity 可直接跳转
+     * 等价的 Intent action 是 com.android.settings.action.VOICE_INPUT_SETTINGS
+     * 跳过去后用户在系统设置里点选【小a】即生效
+     */
+    private fun openAssistantSettings() {
+        try {
+            val intent = Intent().apply {
+                component = ComponentName(
+                    "com.android.settings",
+                    "com.android.settings.Settings\$ManageAssistActivity"
+                )
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            try {
+                // 兜底：用 action 跳转
+                startActivity(Intent("com.android.settings.action.VOICE_INPUT_SETTINGS").apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                })
+            } catch (e2: Exception) {
+                AlertDialog.Builder(this)
+                    .setTitle("跳转失败")
+                    .setMessage("请手动进入 设置 → 助手和语音输入 → 选择【小a】作为默认数字助理")
+                    .setPositiveButton("好的", null)
+                    .show()
+            }
         }
     }
 
