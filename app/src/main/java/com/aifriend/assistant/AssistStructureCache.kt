@@ -5,10 +5,7 @@ import android.util.Log
 
 /**
  * AssistStructure 内存缓存
- * - 仿 vis 的 AssistStructureCache，存 UiObjectLite 列表
- * - Vis 进程单例；EC 通过 Binder 远程调用 searchByText/...
- * - 每次有新的 AssistStructure 进来时，先 clear 再填充
- * - 版本号单调递增，EC 用它判断是否需要重读
+ * 仿 vis AssistStructureCache，存 UiObjectLite 列表
  */
 object AssistStructureCache {
 
@@ -33,7 +30,8 @@ object AssistStructureCache {
             for (w in 0 until windowCount) {
                 val window = structure.getWindowNodeAt(w)
                 val pkg = window.title?.toString() ?: ""
-                dumpNode(window.rootNode, pkg, newSnapshot)
+                val root: AssistStructure.ViewNode? = try { window.rootViewNode } catch (t: Throwable) { null }
+                if (root != null) dumpNode(root, pkg, newSnapshot)
             }
             snapshot = newSnapshot
             version++
@@ -44,7 +42,7 @@ object AssistStructureCache {
     }
 
     private fun dumpNode(
-        node: android.app.assist.AssistStructure.ViewNode,
+        node: AssistStructure.ViewNode,
         pkgFallback: String,
         out: ArrayList<UiObjectLite>
     ) {
@@ -68,7 +66,7 @@ object AssistStructureCache {
                         bottom = node.bottom,
                         clickable = node.isClickable,
                         focusable = node.isFocusable,
-                        visibleToUser = node.isVisibleToUser
+                        visibleToUser = true
                     )
                 )
             }

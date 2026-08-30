@@ -4,6 +4,11 @@ plugins {
 }
 
 android {
+    sourceSets {
+        getByName("main") {
+            aidl.srcDirs("src/main/aidl")
+        }
+    }
     namespace = "com.aifriend.assistant"
     compileSdk = 34
 
