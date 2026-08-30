@@ -13,11 +13,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- 忽略电池优化 -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <!-- 文件共享输出到 /sdcard/xiaoa/（与 EC 主程序通信） -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
+    <!-- EC 主程序读取此目录时申请所有文件访问权限 -->
 
     <application
         android:name=".XiaApp"

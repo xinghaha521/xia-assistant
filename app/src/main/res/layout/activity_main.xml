@@ -34,8 +34,8 @@
             android:id="@+id/tvAccessibilityStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="① 无障碍服务：检测中..."
-            android:textSize="15sp"
+             android:text="① 无障碍服务：可选备用通道"
+             android:textSize="15sp"
             android:paddingTop="6dp"
             android:paddingBottom="6dp" />
 

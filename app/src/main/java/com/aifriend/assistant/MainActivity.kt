@@ -46,25 +46,6 @@ class MainActivity : AppCompatActivity() {
 
         setupUI()
         observeState()
-        requestStoragePermission()
-    }
-
-    /**
-     * 请求存储权限（写入 /sdcard/xiaoa/ 与 EC 主程序共享节点 XML）
-     */
-    private fun requestStoragePermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
-        ) {
-            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissions(
-                    arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    REQ_STORAGE
-                )
-            }
-        }
     }
 
     private fun setupUI() {
@@ -114,11 +95,9 @@ class MainActivity : AppCompatActivity() {
     private fun refreshPermissionStates() {
         // 1. 无障碍服务
         val accOn = isAccessibilityEnabled()
-        binding.tvAccessibilityStatus.text = if (accOn) "① 无障碍服务：【已开启】 ✓" else "① 无障碍服务：【未开启】 ✗"
-        binding.tvAccessibilityStatus.setTextColor(
-            if (accOn) getColor(android.R.color.holo_green_dark) else getColor(android.R.color.holo_red_dark)
-        )
-        binding.btnOpenAccessibility.visibility = if (accOn) View.GONE else View.VISIBLE
+        binding.tvAccessibilityStatus.text = "① 无障碍服务：可选备用通道"
+        binding.tvAccessibilityStatus.setTextColor(getColor(android.R.color.holo_orange_dark))
+        binding.btnOpenAccessibility.visibility = View.GONE
 
         // 2. 自启动（无法直接判断，提示用户）
         binding.tvAutoStartStatus.text = "② 自启动权限：请到系统设置手动开启"

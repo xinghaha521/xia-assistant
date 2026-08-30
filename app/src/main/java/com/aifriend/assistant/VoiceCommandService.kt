@@ -1,16 +1,11 @@
 package com.aifriend.assistant
 
+import android.app.assist.AssistContent
+import android.app.assist.AssistStructure
+import android.os.Bundle
 import android.service.voice.VoiceInteractionService
 import android.util.Log
 
-/**
- * 数字助理核心服务
- *
- * 声明该服务后，本应用会出现在 MIUI「数字助理」列表中，
- * 用户可将其设为系统数字助理，从而获得后台保活与读屏能力。
- *
- * 本应用不依赖语音交互，仅需保证服务可被系统绑定即可。
- */
 class VoiceCommandService : VoiceInteractionService() {
 
     companion object {
@@ -20,6 +15,24 @@ class VoiceCommandService : VoiceInteractionService() {
     override fun onReady() {
         super.onReady()
         Log.i(TAG, "数字助理服务已就绪")
+    }
+
+    override fun onHandleAssist(
+        data: Bundle?,
+        structure: AssistStructure?,
+        content: AssistContent?
+    ) {
+        super.onHandleAssist(data, structure, content)
+        if (structure == null) return
+        try {
+            val xml = AssistNodeDumper.dump(structure)
+            if (!xml.isNullOrEmpty()) {
+                NodeFileWriter.write(xml)
+                Log.i(TAG, "AssistStructure 写入成功 size=${xml.length}")
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "AssistStructure 处理失败: ${t.message}")
+        }
     }
 
     override fun onShutdown() {

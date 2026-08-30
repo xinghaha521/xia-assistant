@@ -42,7 +42,7 @@ class NodeService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
-        Log.i(TAG, "无障碍服务已连接")
+        Log.i(TAG, "无障碍服务已连接（备用通道）")
         NodePusher.attach(this)
     }
 
