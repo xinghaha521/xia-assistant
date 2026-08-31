@@ -1,7 +1,6 @@
 package com.aifriend.assistant
 
 import android.app.assist.AssistStructure
-import android.graphics.Rect
 import android.util.Log
 
 /**
@@ -32,7 +31,12 @@ object AssistStructureCache {
                 val window = structure.getWindowNodeAt(w)
                 val pkg = window.title?.toString() ?: ""
                 val root: AssistStructure.ViewNode? = try { window.rootViewNode } catch (t: Throwable) { null }
-                if (root != null) dumpNode(root, pkg, newSnapshot)
+                if (root != null) {
+                    // v0.8.1: 传递窗口偏移量，用于把节点本地坐标转换为屏幕绝对坐标
+                    val winLeft = try { window.left } catch (t: Throwable) { 0 }
+                    val winTop = try { window.top } catch (t: Throwable) { 0 }
+                    dumpNode(root, pkg, newSnapshot, winLeft, winTop)
+                }
             }
             snapshot = newSnapshot
             version++
@@ -45,7 +49,9 @@ object AssistStructureCache {
     private fun dumpNode(
         node: AssistStructure.ViewNode,
         pkgFallback: String,
-        out: ArrayList<UiObjectLite>
+        out: ArrayList<UiObjectLite>,
+        winLeft: Int = 0,
+        winTop: Int = 0
     ) {
         try {
             val text = node.text?.toString() ?: ""
@@ -54,10 +60,9 @@ object AssistStructureCache {
             val cls = node.className ?: ""
             val pkg = node.idPackage ?: pkgFallback
             if (text.isNotEmpty() || desc.isNotEmpty() || rid.isNotEmpty() || cls.isNotEmpty()) {
-                // v0.8.1: 用 getBoundsInScreen(Rect) 拿屏幕绝对坐标
-                // 之前用 node.left/top/width/height 是相对父节点的本地坐标，导致 EC 算出的 center 错误
-                val rect = Rect()
-                node.getBoundsInScreen(rect)
+                // v0.8.1: 用 WindowNode.getLeft()/getTop() 拿屏幕偏移，加上节点本地坐标
+                // = 屏幕绝对坐标。AssistStructure.ViewNode 没有 getBoundsInScreen()，
+                // 只能用这种"窗口偏移 + 节点本地"的组合方案（无 transform/scroll 缩放近似）
                 out.add(
                     UiObjectLite(
                         text = text,
@@ -65,10 +70,10 @@ object AssistStructureCache {
                         resourceId = rid,
                         className = cls,
                         packageName = pkg,
-                        left = rect.left,
-                        top = rect.top,
-                        right = rect.right,
-                        bottom = rect.bottom,
+                        left = winLeft + node.left,
+                        top = winTop + node.top,
+                        right = winLeft + node.left + node.width,
+                        bottom = winTop + node.top + node.height,
                         clickable = node.isClickable,
                         focusable = node.isFocusable,
                         visibleToUser = true
@@ -76,7 +81,7 @@ object AssistStructureCache {
                 )
             }
             for (i in 0 until node.childCount) {
-                dumpNode(node.getChildAt(i), pkgFallback, out)
+                dumpNode(node.getChildAt(i), pkgFallback, out, winLeft, winTop)
             }
         } catch (t: Throwable) {
             Log.w(TAG, "dumpNode 跳过: ${t.message}")
