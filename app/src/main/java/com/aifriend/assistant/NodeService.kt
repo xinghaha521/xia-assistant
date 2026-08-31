@@ -1,6 +1,7 @@
 package com.aifriend.assistant
 
 import android.accessibilityservice.AccessibilityService
+import android.content.Context
 import android.os.Build
 import android.os.Parcelable
 import android.util.Log
