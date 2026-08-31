@@ -55,9 +55,6 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this)[DebugViewModel::class.java]
 
-        // 首次启动：释放 JS 模块到 files/js/（自愈式，缺啥补啥）
-        JsModuleRelease.ensureReleased(this)
-
         setupUI()
         observeState()
         observeNodePusher()
