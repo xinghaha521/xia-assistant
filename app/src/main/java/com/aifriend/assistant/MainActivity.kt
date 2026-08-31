@@ -8,6 +8,8 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import android.text.format.Formatter
@@ -38,6 +40,13 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: DebugViewModel
+    private val uptimeHandler = Handler(Looper.getMainLooper())
+    private val uptimeRunnable = object : Runnable {
+        override fun run() {
+            viewModel.tickUptime()
+            uptimeHandler.postDelayed(this, 1000L)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +57,7 @@ class MainActivity : AppCompatActivity() {
 
         setupUI()
         observeState()
+        observeNodePusher()
     }
 
     private fun setupUI() {
@@ -92,6 +102,22 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         refreshPermissionStates()
+        viewModel.onServiceStart()
+        uptimeHandler.postDelayed(uptimeRunnable, 1000L)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        uptimeHandler.removeCallbacks(uptimeRunnable)
+    }
+
+    private fun observeNodePusher() {
+        NodePusher.pushEventLiveData.observe(this) { event ->
+            viewModel.onPush(event.packetSize, event.clientCount)
+        }
+        NodePusher.clientCountLiveData.observe(this) { count ->
+            viewModel.onClientCountChanged(count)
+        }
     }
 
     /**
@@ -101,7 +127,7 @@ class MainActivity : AppCompatActivity() {
         // 1. 默认数字助理
         val isDefault = isDefaultVoiceAssistant()
         binding.tvAssistantStatus.text = if (isDefault) {
-            "① 默认数字助理：【已设为小a】 ✓"
+            "① 默认数字助理：【已设为小A服务】 ✓"
         } else {
             "① 默认数字助理：【未设】 ✗"
         }
@@ -186,7 +212,7 @@ class MainActivity : AppCompatActivity() {
             } catch (e2: Exception) {
                 AlertDialog.Builder(this)
                     .setTitle("跳转失败")
-                    .setMessage("请手动进入 设置 → 助手和语音输入 → 选择【小a】作为默认数字助理")
+                    .setMessage("请手动进入 设置 → 助手和语音输入 → 选择【小A服务】作为默认数字助理")
                     .setPositiveButton("好的", null)
                     .show()
             }
@@ -240,7 +266,7 @@ class MainActivity : AppCompatActivity() {
         }
         AlertDialog.Builder(this)
             .setTitle("请手动开启自启动")
-            .setMessage("设置 → 应用管理 → 【小a】 → 自启动 → 打开")
+            .setMessage("请手动进入 设置 → 应用管理 → 【小A服务】 → 自启动 → 打开")
             .setPositiveButton("好的", null)
             .show()
     }

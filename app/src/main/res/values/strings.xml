@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">小a 节点服务</string>
-    <string name="accessibility_service_label">小a 节点服务</string>
-    <string name="footer_hint">【小a】v0.1.0 · LocalSocket: aifriend_assistant</string>
+    <string name="app_name">小A服务</string>
+    <string name="accessibility_service_label">小A服务</string>
+    <string name="footer_hint">【小A服务】v0.5.0 · LocalSocket: aifriend_assistant</string>
 </resources>

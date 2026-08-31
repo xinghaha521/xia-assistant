@@ -49,7 +49,6 @@ class AssistForegroundService : Service() {
         Log.i(TAG, "前台服务创建")
         createNotificationChannel()
         startForeground(NOTIFY_ID, buildNotification())
-        DebugBus.listener?.let { /* keepalive */ }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -94,7 +93,7 @@ class AssistForegroundService : Service() {
         )
 
         return Notification.Builder(this, CHANNEL_ID)
-            .setContentTitle("【小a】节点服务运行中")
+            .setContentTitle("【小A服务】节点服务运行中")
             .setContentText("LocalSocket: aifriend_assistant")
             .setSmallIcon(android.R.drawable.stat_notify_sync_noanim)
             .setContentIntent(pendingIntent)

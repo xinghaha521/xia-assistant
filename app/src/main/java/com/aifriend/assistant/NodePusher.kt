@@ -56,6 +56,12 @@ object NodePusher {
     val clientCountLiveData = MutableLiveData<Int>(0)
 
     /**
+     * 推送事件（packetSize, clientCount）
+     */
+    data class PushEvent(val packetSize: Int, val clientCount: Int)
+    val pushEventLiveData = MutableLiveData<PushEvent>()
+
+    /**
      * 客户端连接封装
      * localSocket 是反射得到的 android.net.LocalSocket 实例
      */
@@ -205,9 +211,8 @@ object NodePusher {
         val body = ("<dump>" + xml + "</dump>").toByteArray(Charsets.UTF_8)
         broadcastInternal(body, isPing = false)
 
-        // 通知调试页
         mainHandler.post {
-            DebugBus.notifyPush(body.size, clients.size)
+            pushEventLiveData.value = PushEvent(body.size, clients.size)
         }
     }
 
@@ -249,7 +254,6 @@ object NodePusher {
     private fun updateClientCount() {
         mainHandler.post {
             clientCountLiveData.value = clients.size
-            DebugBus.notifyClientCount(clients.size)
         }
     }
 
@@ -263,21 +267,5 @@ object NodePusher {
             (value shr 8 and 0xFF).toByte(),
             (value and 0xFF).toByte()
         )
-    }
-}
-
-/**
- * 调试事件总线
- */
-object DebugBus {
-    @Volatile var listener: ((packetSize: Int, clientCount: Int) -> Unit)? = null
-    @Volatile var clientCountListener: ((Int) -> Unit)? = null
-
-    fun notifyPush(packetSize: Int, clientCount: Int) {
-        listener?.invoke(packetSize, clientCount)
-    }
-
-    fun notifyClientCount(count: Int) {
-        clientCountListener?.invoke(count)
     }
 }
