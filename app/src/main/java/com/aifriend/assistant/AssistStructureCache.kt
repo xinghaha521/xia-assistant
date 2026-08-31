@@ -32,9 +32,11 @@ object AssistStructureCache {
                 val pkg = window.title?.toString() ?: ""
                 val root: AssistStructure.ViewNode? = try { window.rootViewNode } catch (t: Throwable) { null }
                 if (root != null) {
-                    // v0.8.1: 传递窗口偏移量，用于把节点本地坐标转换为屏幕绝对坐标
                     val winLeft = try { window.left } catch (t: Throwable) { 0 }
                     val winTop = try { window.top } catch (t: Throwable) { 0 }
+                    val winWidth = try { window.width } catch (t: Throwable) { 0 }
+                    val winHeight = try { window.height } catch (t: Throwable) { 0 }
+                    Log.d(TAG, "DEBUG Window #$w pkg=$pkg winLeft=$winLeft winTop=$winTop winWidth=$winWidth winHeight=$winHeight")
                     dumpNode(root, pkg, newSnapshot, winLeft, winTop)
                 }
             }
@@ -60,9 +62,12 @@ object AssistStructureCache {
             val cls = node.className ?: ""
             val pkg = node.idPackage ?: pkgFallback
             if (text.isNotEmpty() || desc.isNotEmpty() || rid.isNotEmpty() || cls.isNotEmpty()) {
-                // v0.8.1: 用 WindowNode.getLeft()/getTop() 拿屏幕偏移，加上节点本地坐标
-                // = 屏幕绝对坐标。AssistStructure.ViewNode 没有 getBoundsInScreen()，
-                // 只能用这种"窗口偏移 + 节点本地"的组合方案（无 transform/scroll 缩放近似）
+                // v0.8.1 debug: 打印关键节点的实际数值
+                if (rid.contains("rbDigital") || rid.contains("rbAccessibility") ||
+                    rid.contains("rgMode") || rid.contains("tvAssistantStatus") || rid.contains("btnStartService") ||
+                    cls.contains("RadioButton") || cls.contains("RadioGroup") || cls.contains("Button")) {
+                    Log.d(TAG, "DEBUG rid=$rid rawLeft=${node.left} rawTop=${node.top} w=${node.width} h=${node.height} winLeft=$winLeft winTop=$winTop")
+                }
                 out.add(
                     UiObjectLite(
                         text = text,
