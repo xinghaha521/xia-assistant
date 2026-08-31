@@ -122,6 +122,29 @@ class NodeService : AccessibilityService() {
     }
 
     /**
+     * 外部触发 dump（v0.8.0+）
+     * 接收 TriggerReceiver 调用，用于无障碍模式
+     */
+    fun triggerDump(context: Context) {
+        val svc = instance
+        if (svc == null) {
+            Log.w(TAG, "AccessibilityService 未连接，请先开启无障碍服务")
+            return
+        }
+        try {
+            val xml = NodeDumper.dumpService(svc)
+            if (xml.isNullOrEmpty()) {
+                Log.w(TAG, "triggerDump: dump 返回空")
+                return
+            }
+            NodeFileWriter.writeXml(context, xml, source = "accessibility")
+            Log.i(TAG, "triggerDump 成功 size=${xml.length}")
+        } catch (e: Throwable) {
+            Log.e(TAG, "triggerDump 失败", e)
+        }
+    }
+
+    /**
      * Parcelable 占位（保留以便后续扩展）
      */
     @Suppress("unused")

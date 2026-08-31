@@ -21,7 +21,7 @@
             android:paddingTop="12dp"
             android:paddingBottom="20dp" />
 
-        <!-- ========== 权限引导 ========== -->
+        <!-- ========== 权限引导（精简版） ========== -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -48,44 +48,10 @@
             android:layout_marginBottom="6dp" />
 
         <TextView
-            android:id="@+id/tvAccessibilityStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="② 无障碍服务：可选备用通道"
-            android:textSize="15sp"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp" />
-
-        <Button
-            android:id="@+id/btnOpenAccessibility"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="去开启无障碍服务"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="6dp" />
-
-        <TextView
-            android:id="@+id/tvAutoStartStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="③ 自启动权限：请到系统设置手动开启"
-            android:textSize="15sp"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp" />
-
-        <Button
-            android:id="@+id/btnOpenAutoStart"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="去开启自启动"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="6dp" />
-
-        <TextView
             android:id="@+id/tvBatteryStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="④ 电池优化：检测中..."
+            android:text="② 电池优化：检测中..."
             android:textSize="15sp"
             android:paddingTop="6dp"
             android:paddingBottom="6dp" />
@@ -96,7 +62,17 @@
             android:layout_height="wrap_content"
             android:text="去申请电池白名单"
             android:layout_marginTop="2dp"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="12dp" />
+
+        <!-- 自启动说明（纯文案，不可检测） -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="③ 自启动说明：Android 未提供统一的「自启动权限」检测 API。自启动授权因厂商（小米/华为/OPPO/vivo）而异，请到 系统设置 → 应用管理 → 【小A服务】 → 自启动 中手动开启。"
+            android:textSize="13sp"
+            android:textColor="@android:color/darker_gray"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp" />
 
         <!-- ========== 服务控制 ========== -->
         <TextView
@@ -105,6 +81,7 @@
             android:text="服务控制"
             android:textSize="18sp"
             android:textStyle="bold"
+            android:paddingTop="16dp"
             android:paddingBottom="8dp" />
 
         <LinearLayout
@@ -131,6 +108,49 @@
                 android:layout_marginStart="4dp" />
         </LinearLayout>
 
+        <!-- ========== 运行模式（v0.8.0 新增） ========== -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="运行模式"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvAccessibilityHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="⚠️ 已选择无障碍模式，但系统无障碍服务未开启。请到 设置 → 无障碍 → 小A服务 中开启。"
+            android:textColor="@android:color/holo_orange_dark"
+            android:textSize="13sp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:visibility="gone" />
+
+        <RadioGroup
+            android:id="@+id/rgMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/rbDigital"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="数字模式（默认）"
+                android:textSize="15sp"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/rbAccessibility"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="无障碍模式（备用）"
+                android:textSize="15sp" />
+        </RadioGroup>
+
         <!-- ========== 服务运行时间（唯一保留的调试信息） ========== -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -138,7 +158,7 @@
             android:orientation="vertical"
             android:background="@drawable/bg_debug_card"
             android:padding="16dp"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="16dp">
 
             <TextView
                 android:id="@+id/tvUptime"

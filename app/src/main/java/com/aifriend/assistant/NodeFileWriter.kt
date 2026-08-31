@@ -141,4 +141,41 @@ object NodeFileWriter {
             tmpMeta.delete()
         }
     }
+
+    /**
+     * 直接写 XML 字符串（无障碍模式用，绕过 List<UiObjectLite> 转换）
+     * @param source 数据来源标记，写入 meta.json
+     */
+    fun writeXml(context: Context, xml: String, source: String): Boolean = try {
+        val dir = resolveDir(context)
+        val dirFile = File(dir)
+        if (!dirFile.exists()) dirFile.mkdirs()
+
+        val tmpXml = File(dirFile, "$XML_NAME.tmp")
+        tmpXml.writeText(xml, Charsets.UTF_8)
+        val xmlFile = File(dirFile, XML_NAME)
+        if (xmlFile.exists()) xmlFile.delete()
+        if (!tmpXml.renameTo(xmlFile)) {
+            Log.w(TAG, "rename tmp -> xml 失败，尝试直接写")
+            tmpXml.copyTo(xmlFile, overwrite = true)
+            tmpXml.delete()
+        }
+
+        version++
+        val meta = JSONObject().apply {
+            put("v", version)
+            put("ts", System.currentTimeMillis())
+            put("len", xml.length)
+            put("nodes", -1)  // 不知道节点数（直接从 XML 写）
+            put("snap", 0)
+            put("path", dir)
+            put("source", source)
+        }.toString()
+        writeMeta(dirFile, meta)
+        Log.i(TAG, "XML 写入成功 source=$source v=$version bytes=${xml.length}")
+        true
+    } catch (t: Throwable) {
+        Log.w(TAG, "XML 写入失败: ${t.message}", t)
+        false
+    }
 }
