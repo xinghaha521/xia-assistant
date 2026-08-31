@@ -51,8 +51,8 @@
             android:id="@+id/tvAccessibilityStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-             android:text="② 无障碍服务：可选备用通道"
-             android:textSize="15sp"
+            android:text="② 无障碍服务：可选备用通道"
+            android:textSize="15sp"
             android:paddingTop="6dp"
             android:paddingBottom="6dp" />
 
@@ -131,54 +131,14 @@
                 android:layout_marginStart="4dp" />
         </LinearLayout>
 
-        <!-- ========== 调试信息 ========== -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="调试信息"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp" />
-
+        <!-- ========== 服务运行时间（唯一保留的调试信息） ========== -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/bg_debug_card"
-            android:padding="16dp">
-
-            <TextView
-                android:id="@+id/tvClientCount"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="当前客户端连接：0"
-                android:textSize="14sp"
-                android:padding="3dp" />
-
-            <TextView
-                android:id="@+id/tvPushCount"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="总推送次数：0"
-                android:textSize="14sp"
-                android:padding="3dp" />
-
-            <TextView
-                android:id="@+id/tvLastEvent"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="最后事件：--"
-                android:textSize="14sp"
-                android:padding="3dp" />
-
-            <TextView
-                android:id="@+id/tvLastSize"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="最后包大小：0 B"
-                android:textSize="14sp"
-                android:padding="3dp" />
+            android:padding="16dp"
+            android:layout_marginTop="8dp">
 
             <TextView
                 android:id="@+id/tvUptime"
@@ -189,14 +149,6 @@
                 android:padding="3dp" />
 
         </LinearLayout>
-
-        <Button
-            android:id="@+id/btnResetStats"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="清空调试数据"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="20dp" />
 
         <TextView
             android:layout_width="match_parent"

@@ -12,7 +12,6 @@ import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
-import android.text.format.Formatter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.accessibility.AccessibilityManager
@@ -20,16 +19,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.aifriend.assistant.databinding.ActivityMainBinding
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
- * 主页面：引导开启权限 + 调试信息展示
+ * 主页面：权限引导 + 服务运行时间
  *
- * 布局说明：
- * - 上半部分：权限引导（数字助理、无障碍、自启动、电池优化）
- * - 下半部分：调试信息（连接数、推送次数、最后事件、包大小、运行时长）
+ * v1.1.0 简化：移除客户端连接/推送次数/最后事件/包大小等调试项，只保留"服务运行时间"
  */
 class MainActivity : AppCompatActivity() {
 
@@ -57,40 +51,19 @@ class MainActivity : AppCompatActivity() {
 
         setupUI()
         observeState()
-        observeNodePusher()
     }
 
     private fun setupUI() {
-        binding.btnSetDefaultAssistant.setOnClickListener {
-            openAssistantSettings()
-        }
-        binding.btnOpenAccessibility.setOnClickListener {
-            openAccessibilitySettings()
-        }
-        binding.btnOpenBatteryOpt.setOnClickListener {
-            requestIgnoreBatteryOptimization()
-        }
-        binding.btnOpenAutoStart.setOnClickListener {
-            openAutoStartSettings()
-        }
-        binding.btnStartService.setOnClickListener {
-            AssistForegroundService.start(this)
-        }
-        binding.btnStopService.setOnClickListener {
-            AssistForegroundService.stop(this)
-        }
-        binding.btnResetStats.setOnClickListener {
-            viewModel.reset()
-        }
+        binding.btnSetDefaultAssistant.setOnClickListener { openAssistantSettings() }
+        binding.btnOpenAccessibility.setOnClickListener { openAccessibilitySettings() }
+        binding.btnOpenBatteryOpt.setOnClickListener { requestIgnoreBatteryOptimization() }
+        binding.btnOpenAutoStart.setOnClickListener { openAutoStartSettings() }
+        binding.btnStartService.setOnClickListener { AssistForegroundService.start(this) }
+        binding.btnStopService.setOnClickListener { AssistForegroundService.stop(this) }
     }
 
     private fun observeState() {
         viewModel.stats.observe(this) { stats ->
-            binding.tvClientCount.text = "当前客户端连接：${stats.clientCount}"
-            binding.tvPushCount.text = "总推送次数：${stats.pushCount}"
-            val timeFmt = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-            binding.tvLastEvent.text = "最后事件：${timeFmt.format(Date(stats.lastEventTime))}"
-            binding.tvLastSize.text = "最后包大小：${Formatter.formatShortFileSize(this, stats.lastPacketSize)}"
             val durationSec = stats.serviceUptimeMs / 1000
             val h = durationSec / 3600
             val m = (durationSec % 3600) / 60
@@ -109,15 +82,6 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         uptimeHandler.removeCallbacks(uptimeRunnable)
-    }
-
-    private fun observeNodePusher() {
-        NodePusher.pushEventLiveData.observe(this) { event ->
-            viewModel.onPush(event.packetSize, event.clientCount)
-        }
-        NodePusher.clientCountLiveData.observe(this) { count ->
-            viewModel.onClientCountChanged(count)
-        }
     }
 
     /**
