@@ -1,6 +1,7 @@
 package com.aifriend.assistant
 
 import android.app.assist.AssistStructure
+import android.graphics.Rect
 import android.util.Log
 
 /**
@@ -53,6 +54,10 @@ object AssistStructureCache {
             val cls = node.className ?: ""
             val pkg = node.idPackage ?: pkgFallback
             if (text.isNotEmpty() || desc.isNotEmpty() || rid.isNotEmpty() || cls.isNotEmpty()) {
+                // v0.8.1: 用 getBoundsInScreen(Rect) 拿屏幕绝对坐标
+                // 之前用 node.left/top/width/height 是相对父节点的本地坐标，导致 EC 算出的 center 错误
+                val rect = Rect()
+                node.getBoundsInScreen(rect)
                 out.add(
                     UiObjectLite(
                         text = text,
@@ -60,10 +65,10 @@ object AssistStructureCache {
                         resourceId = rid,
                         className = cls,
                         packageName = pkg,
-                        left = node.left,
-                        top = node.top,
-                        right = node.left + node.width,
-                        bottom = node.top + node.height,
+                        left = rect.left,
+                        top = rect.top,
+                        right = rect.right,
+                        bottom = rect.bottom,
                         clickable = node.isClickable,
                         focusable = node.isFocusable,
                         visibleToUser = true
