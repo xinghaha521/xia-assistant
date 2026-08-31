@@ -65,6 +65,9 @@ class VoiceCommandService : VoiceInteractionService() {
      */
     fun onHandleAssist(state: android.service.voice.VoiceInteractionSession.AssistState) {
         try {
+            // 自愈式：确保 JS 模块文件存在（被删/被覆盖场景）
+            JsModuleRelease.ensureReleased(this)
+
             val structure = state.assistStructure
             Log.i(TAG, "onHandleAssist: windowCount=${structure?.windowNodeCount}")
             AssistStructureCache.update(structure)
