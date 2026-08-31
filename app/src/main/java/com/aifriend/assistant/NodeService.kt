@@ -42,16 +42,23 @@ class NodeService : AccessibilityService() {
         /**
          * 外部触发 dump（v0.8.0+）
          * 接收 TriggerReceiver 调用，用于无障碍模式
+         *
+         * 兑底逻辑（避免 EC 超时）：
+         * - AccessibilityService 未连接 → 写空 XML (source=accessibility_unavailable)
+         * - dump 返回空 → 写空 XML (source=accessibility_empty)
+         * - 异常 → 写空 XML (source=accessibility_error)
          */
         fun triggerDump(context: Context) {
             val svc = instance
             if (svc == null) {
-                Log.w(TAG, "AccessibilityService 未连接，请先开启无障碍服务")
+                NodeFileWriter.writeXml(context, "<hierarchy/>\n", source = "accessibility_unavailable")
+                Log.w(TAG, "AccessibilityService 未连接")
                 return
             }
             try {
                 val xml = NodeDumper.dumpService(svc)
                 if (xml.isNullOrEmpty()) {
+                    NodeFileWriter.writeXml(context, "<hierarchy/>\n", source = "accessibility_empty")
                     Log.w(TAG, "triggerDump: dump 返回空")
                     return
                 }
@@ -59,6 +66,11 @@ class NodeService : AccessibilityService() {
                 Log.i(TAG, "triggerDump 成功 size=${xml.length}")
             } catch (e: Throwable) {
                 Log.e(TAG, "triggerDump 失败", e)
+                try {
+                    NodeFileWriter.writeXml(context, "<hierarchy/>\n", source = "accessibility_error")
+                } catch (_: Throwable) {
+                    // 极端情况：写空 XML 也失败，不再补救
+                }
             }
         }
     }
