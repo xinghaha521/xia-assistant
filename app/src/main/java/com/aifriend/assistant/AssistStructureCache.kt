@@ -32,12 +32,10 @@ object AssistStructureCache {
                 val pkg = window.title?.toString() ?: ""
                 val root: AssistStructure.ViewNode? = try { window.rootViewNode } catch (t: Throwable) { null }
                 if (root != null) {
+                    // v0.8.1: 用 WindowNode.getLeft()/getTop() 拿窗口偏移，作为递归累加的起点
                     val winLeft = try { window.left } catch (t: Throwable) { 0 }
                     val winTop = try { window.top } catch (t: Throwable) { 0 }
-                    val winWidth = try { window.width } catch (t: Throwable) { 0 }
-                    val winHeight = try { window.height } catch (t: Throwable) { 0 }
-                    Log.d(TAG, "DEBUG Window #$w pkg=$pkg winLeft=$winLeft winTop=$winTop winWidth=$winWidth winHeight=$winHeight rootLeft=${root.left} rootTop=${root.top}")
-                    dumpNode(root, pkg, newSnapshot, 0, winLeft, winTop)
+                    dumpNode(root, pkg, newSnapshot, winLeft, winTop)
                 }
             }
             snapshot = newSnapshot
@@ -48,11 +46,23 @@ object AssistStructureCache {
         }
     }
 
+    /**
+     * v0.8.1 关键修复：递归累加父节点偏移
+     *
+     * AssistStructure.ViewNode.left/top 是相对父节点的本地坐标（不是屏幕绝对）。
+     * 这与 AccessibilityNodeInfo.getBoundsInScreen() 的语义完全不同。
+     * 早期版本直接用 node.left/top 当屏幕坐标，导致 RadioButton 等
+     * 相对父布局的节点 bounds 全错。
+     *
+     * 修复方案：把当前节点的 left/top 加到 winLeft/winTop 上传给子节点，
+     * 层层累加得到屏幕绝对坐标。WindowNode.getLeft()/getTop() 是根偏移起点。
+     *
+     * 局限：没处理 transform 矩阵和 scroll 偏移。绝大多数应用场景足够准确。
+     */
     private fun dumpNode(
         node: AssistStructure.ViewNode,
         pkgFallback: String,
         out: ArrayList<UiObjectLite>,
-        depth: Int = 0,
         winLeft: Int = 0,
         winTop: Int = 0
     ) {
@@ -62,10 +72,7 @@ object AssistStructureCache {
             val rid = node.idEntry ?: ""
             val cls = node.className ?: ""
             val pkg = node.idPackage ?: pkgFallback
-            val indent = "  ".repeat(depth)
-            // 调试：打印所有有意义的节点
             if (text.isNotEmpty() || desc.isNotEmpty() || rid.isNotEmpty() || cls.isNotEmpty()) {
-                Log.d(TAG, "${indent}DUMP cls=$cls rid=$rid rawL=${node.left} rawT=${node.top} w=${node.width} h=${node.height} winL=$winLeft winT=$winTop")
                 out.add(
                     UiObjectLite(
                         text = text,
@@ -85,10 +92,10 @@ object AssistStructureCache {
             }
             for (i in 0 until node.childCount) {
                 val child = node.getChildAt(i)
-                // 尝试累加当前节点偏移量
+                // 累加当前节点偏移，作为下一层递归的 winLeft/winTop
                 val newWinLeft = winLeft + node.left
                 val newWinTop = winTop + node.top
-                dumpNode(child, pkgFallback, out, depth + 1, newWinLeft, newWinTop)
+                dumpNode(child, pkgFallback, out, newWinLeft, newWinTop)
             }
         } catch (t: Throwable) {
             Log.w(TAG, "dumpNode 跳过: ${t.message}")
