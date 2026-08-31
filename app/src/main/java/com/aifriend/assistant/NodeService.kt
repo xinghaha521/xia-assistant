@@ -38,6 +38,29 @@ class NodeService : AccessibilityService() {
             private set
 
         fun isRunning(): Boolean = instance != null
+
+        /**
+         * 外部触发 dump（v0.8.0+）
+         * 接收 TriggerReceiver 调用，用于无障碍模式
+         */
+        fun triggerDump(context: Context) {
+            val svc = instance
+            if (svc == null) {
+                Log.w(TAG, "AccessibilityService 未连接，请先开启无障碍服务")
+                return
+            }
+            try {
+                val xml = NodeDumper.dumpService(svc)
+                if (xml.isNullOrEmpty()) {
+                    Log.w(TAG, "triggerDump: dump 返回空")
+                    return
+                }
+                NodeFileWriter.writeXml(context, xml, source = "accessibility")
+                Log.i(TAG, "triggerDump 成功 size=${xml.length}")
+            } catch (e: Throwable) {
+                Log.e(TAG, "triggerDump 失败", e)
+            }
+        }
     }
 
     override fun onServiceConnected() {
@@ -120,29 +143,6 @@ class NodeService : AccessibilityService() {
         NodePusher.broadcast(xml)
         // NodeFileWriter.write(xml) // v0.4.1: NodeFileWriter 仅支持 writeSync(nodes, version)，移除旧 API
         // 无障碍通道下不再写文件，主线节点采集已迁到 VoiceCommandService.onHandleAssist
-    }
-
-    /**
-     * 外部触发 dump（v0.8.0+）
-     * 接收 TriggerReceiver 调用，用于无障碍模式
-     */
-    fun triggerDump(context: Context) {
-        val svc = instance
-        if (svc == null) {
-            Log.w(TAG, "AccessibilityService 未连接，请先开启无障碍服务")
-            return
-        }
-        try {
-            val xml = NodeDumper.dumpService(svc)
-            if (xml.isNullOrEmpty()) {
-                Log.w(TAG, "triggerDump: dump 返回空")
-                return
-            }
-            NodeFileWriter.writeXml(context, xml, source = "accessibility")
-            Log.i(TAG, "triggerDump 成功 size=${xml.length}")
-        } catch (e: Throwable) {
-            Log.e(TAG, "triggerDump 失败", e)
-        }
     }
 
     /**
