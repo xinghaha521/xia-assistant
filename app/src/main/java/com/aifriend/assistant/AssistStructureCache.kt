@@ -36,8 +36,8 @@ object AssistStructureCache {
                     val winTop = try { window.top } catch (t: Throwable) { 0 }
                     val winWidth = try { window.width } catch (t: Throwable) { 0 }
                     val winHeight = try { window.height } catch (t: Throwable) { 0 }
-                    Log.d(TAG, "DEBUG Window #$w pkg=$pkg winLeft=$winLeft winTop=$winTop winWidth=$winWidth winHeight=$winHeight")
-                    dumpNode(root, pkg, newSnapshot, winLeft, winTop)
+                    Log.d(TAG, "DEBUG Window #$w pkg=$pkg winLeft=$winLeft winTop=$winTop winWidth=$winWidth winHeight=$winHeight rootLeft=${root.left} rootTop=${root.top}")
+                    dumpNode(root, pkg, newSnapshot, 0, winLeft, winTop)
                 }
             }
             snapshot = newSnapshot
@@ -52,6 +52,7 @@ object AssistStructureCache {
         node: AssistStructure.ViewNode,
         pkgFallback: String,
         out: ArrayList<UiObjectLite>,
+        depth: Int = 0,
         winLeft: Int = 0,
         winTop: Int = 0
     ) {
@@ -61,13 +62,10 @@ object AssistStructureCache {
             val rid = node.idEntry ?: ""
             val cls = node.className ?: ""
             val pkg = node.idPackage ?: pkgFallback
+            val indent = "  ".repeat(depth)
+            // 调试：打印所有有意义的节点
             if (text.isNotEmpty() || desc.isNotEmpty() || rid.isNotEmpty() || cls.isNotEmpty()) {
-                // v0.8.1 debug: 打印关键节点的实际数值
-                if (rid.contains("rbDigital") || rid.contains("rbAccessibility") ||
-                    rid.contains("rgMode") || rid.contains("tvAssistantStatus") || rid.contains("btnStartService") ||
-                    cls.contains("RadioButton") || cls.contains("RadioGroup") || cls.contains("Button")) {
-                    Log.d(TAG, "DEBUG rid=$rid rawLeft=${node.left} rawTop=${node.top} w=${node.width} h=${node.height} winLeft=$winLeft winTop=$winTop")
-                }
+                Log.d(TAG, "${indent}DUMP cls=$cls rid=$rid rawL=${node.left} rawT=${node.top} w=${node.width} h=${node.height} winL=$winLeft winT=$winTop")
                 out.add(
                     UiObjectLite(
                         text = text,
@@ -86,7 +84,11 @@ object AssistStructureCache {
                 )
             }
             for (i in 0 until node.childCount) {
-                dumpNode(node.getChildAt(i), pkgFallback, out, winLeft, winTop)
+                val child = node.getChildAt(i)
+                // 尝试累加当前节点偏移量
+                val newWinLeft = winLeft + node.left
+                val newWinTop = winTop + node.top
+                dumpNode(child, pkgFallback, out, depth + 1, newWinLeft, newWinTop)
             }
         } catch (t: Throwable) {
             Log.w(TAG, "dumpNode 跳过: ${t.message}")
